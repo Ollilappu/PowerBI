@@ -1,9 +1,9 @@
-#Present time in hour scale in HH:mm format.
+--Present time in hour scale in HH:mm format.
 hour00 = 
     var hour1 = hour(FINEST_BUSCHARGING_OCPP_METERVALUES[TIMESTAMP])
     var hourfix = if(len(hour1)=1,CONCATENATE(0,hour1),hour1)
     var hour00 = CONCATENATE(hourfix,":00")
     return hour00
 
-#Separate weekend from the other days.
+--Separate weekend from the other days.
 paivatyyppi = if(Kalenteri[DayOfWeekNumber] >= 6, "Viikonloppu", "Arkipäivä")
