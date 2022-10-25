@@ -1,0 +1,6 @@
+#Compare average result to overall average from selected time period
+avg_vertaus = 
+var average_allselectedvalues = CALCULATE(AVERAGE(<Table'values'>), ALLSELECTED(<Table>))
+var average = CALCULATE(AVERAGE(<Table'values'>))
+var comparison = average/average_allselectedvalues
+return comparison
