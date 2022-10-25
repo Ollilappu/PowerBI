@@ -1,0 +1,39 @@
+Kalenteri = ADDCOLUMNS ( 
+
+--Choose how calendar dates are chosen!
+--CALENDARAUTO(),  
+--CALENDAR ( MIN(Table[DateColumn]), MAX(Table[DateColumn]) ), 
+
+"DateAsInteger", FORMAT ( [Date], "YYYYMMDD" ), 
+
+"Year", YEAR ( [Date] ), 
+
+"Monthnumber", MONTH( [Date] ), 
+
+"MonthnumberText", FORMAT ( [Date], "MM" ), 
+
+"YearMonthnumber", FORMAT ( [Date], "YYYY/MM" ), 
+
+"YearMonthShort", FORMAT ( [Date], "YYYY/mmm" ), 
+
+"MonthNameShort", FORMAT ( [Date], "mmm" ), 
+
+"MonthNameLong", FORMAT ( [Date], "mmmm" ), 
+
+"DayOfWeekNumber", WEEKDAY ( [Date], 2 ), 
+
+"DayOfWeek", FORMAT ( [Date], "dddd" ), 
+
+"DayOfWeekShort", FORMAT ( [Date], "ddd" ), 
+
+"Weeknum", WEEKNUM([Date],2), 
+
+"Weeknum-Month", "vko " & WEEKNUM([Date],2) & " - " & FORMAT([Date], "mmm"), 
+
+"Quarter", "Q" & FORMAT ( [Date], "Q" ), 
+
+"YearQuarter", FORMAT ( [Date], "YYYY" ) & "/Q" & FORMAT ( [Date], "Q" ), 
+
+"Half", IF(MONTH([date]) <= 6, "H1", "H2") 
+
+) 
