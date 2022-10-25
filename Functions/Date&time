@@ -4,3 +4,6 @@ hour00 =
     var hourfix = if(len(hour1)=1,CONCATENATE(0,hour1),hour1)
     var hour00 = CONCATENATE(hourfix,":00")
     return hour00
+
+#Separate weekend from the other days.
+paivatyyppi = if(Kalenteri[DayOfWeekNumber] >= 6, "Viikonloppu", "Arkipäivä")
