@@ -10,3 +10,10 @@ Compare_to_last_year =
 var last_year = CALCULATE(Table[calculation], PARALLELPERIOD(Kalenteri[Date] , -1 , YEAR))
 var current_year = Table[calculation]
 return (current_year-last_year)/last_year
+
+--Calculate average of daily sums per week.
+Avg. count per Week = 
+Averagex(
+    Values(Kalenteri[Date] ),
+        [Total_count]
+)
