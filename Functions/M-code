@@ -1,0 +1,26 @@
+--FMI Weather data past 6-days
+let
+    Source = Xml.Tables(Web.Contents("https://opendata.fmi.fi/wfs/fin?service=WFS&version=2.0.0&request=GetFeature&storedquery_id=fmi::observations::weather::timevaluepair&place=Helsinki&starttime="&Date.ToText(Date.AddDays(Date.From(DateTime.LocalNow()),-6), [Format="yyyy-MM-dd"])&"&endtime="&Date.ToText(Date.AddDays(Date.From(DateTime.LocalNow()),1), [Format="yyyy-MM-dd"])&"&tep=60")),
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Attribute:timeStamp", type datetime}, {"Attribute:numberMatched", Int64.Type}, {"Attribute:numberReturned", Int64.Type}}),
+    #"Expanded member" = Table.ExpandTableColumn(#"Changed Type", "member", {"http://inspire.ec.europa.eu/schemas/omso/3.0"}, {"http://inspire.ec.europa.eu/schemas/omso/3.0"}),
+    #"Expanded http://inspire.ec.europa.eu/schemas/omso/3.0" = Table.ExpandTableColumn(#"Expanded member", "http://inspire.ec.europa.eu/schemas/omso/3.0", {"PointTimeSeriesObservation"}, {"PointTimeSeriesObservation"}),
+    #"Removed Columns" = Table.RemoveColumns(#"Expanded http://inspire.ec.europa.eu/schemas/omso/3.0",{"Attribute:timeStamp", "Attribute:numberMatched", "Attribute:numberReturned", "http://www.w3.org/2001/XMLSchema-instance"}),
+    #"Expanded PointTimeSeriesObservation" = Table.ExpandTableColumn(#"Removed Columns", "PointTimeSeriesObservation", {"http://www.opengis.net/om/2.0"}, {"http://www.opengis.net/om/2.0"}),
+    #"Expanded http://www.opengis.net/om/2.0" = Table.ExpandTableColumn(#"Expanded PointTimeSeriesObservation", "http://www.opengis.net/om/2.0", {"phenomenonTime", "resultTime", "procedure", "parameter", "observedProperty", "featureOfInterest", "result"}, {"phenomenonTime", "resultTime", "procedure", "parameter", "observedProperty", "featureOfInterest", "result"}),
+    #"Expanded result" = Table.ExpandTableColumn(#"Expanded http://www.opengis.net/om/2.0", "result", {"http://www.opengis.net/waterml/2.0"}, {"http://www.opengis.net/waterml/2.0"}),
+    #"Expanded observedProperty1" = Table.ExpandTableColumn(#"Expanded result", "observedProperty", {"http://www.w3.org/1999/xlink"}, {"http://www.w3.org/1999/xlink"}),
+    #"Expanded http://www.w3.org/1999/xlink" = Table.ExpandTableColumn(#"Expanded observedProperty1", "http://www.w3.org/1999/xlink", {"Attribute:href"}, {"Attribute:href"}),
+    #"Filtered Rows" = Table.SelectRows(#"Expanded http://www.w3.org/1999/xlink", each ([#"Attribute:href"] = "https://opendata.fmi.fi/meta?observableProperty=observation&param=ri_10min&language=fin" or [#"Attribute:href"] = "https://opendata.fmi.fi/meta?observableProperty=observation&param=t2m&language=fin")),
+    #"Expanded http://www.opengis.net/waterml/2.0" = Table.ExpandTableColumn(#"Filtered Rows", "http://www.opengis.net/waterml/2.0", {"MeasurementTimeseries"}, {"MeasurementTimeseries"}),
+    #"Expanded MeasurementTimeseries" = Table.ExpandTableColumn(#"Expanded http://www.opengis.net/waterml/2.0", "MeasurementTimeseries", {"point", "http://www.opengis.net/gml/3.2"}, {"point", "http://www.opengis.net/gml/3.2"}),
+    #"Expanded point" = Table.ExpandTableColumn(#"Expanded MeasurementTimeseries", "point", {"MeasurementTVP"}, {"MeasurementTVP"}),
+    #"Expanded MeasurementTVP" = Table.ExpandTableColumn(#"Expanded point", "MeasurementTVP", {"time", "value"}, {"time", "value"}),
+    #"Removed Other Columns" = Table.SelectColumns(#"Expanded MeasurementTVP",{"Attribute:href", "time", "value"}),
+    #"Replaced Value" = Table.ReplaceValue(#"Removed Other Columns",".",",",Replacer.ReplaceText,{"value"}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","https://opendata.fmi.fi/meta?observableProperty=observation&param=t2m&language=fin","temperature",Replacer.ReplaceText,{"Attribute:href"}),
+    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","https://opendata.fmi.fi/meta?observableProperty=observation&param=ri_10min&language=fin","rain intensity",Replacer.ReplaceText,{"Attribute:href"}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Replaced Value2",{{"time", type datetime}, {"value", type number}}),
+    #"Pivoted Column" = Table.Pivot(#"Changed Type1", List.Distinct(#"Changed Type1"[#"Attribute:href"]), "Attribute:href", "value", List.Sum),
+    #"Sorted Rows" = Table.Sort(#"Pivoted Column",{{"time", Order.Descending}})
+in
+    #"Sorted Rows"
